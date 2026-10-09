@@ -1,0 +1,91 @@
+@host = http://localhost:5100
+
+### Login (use either demo account)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@assethub.io",
+  "password": "Admin@123"
+}
+
+### ------------------------------------------------------------------
+### Paste the token from the login response into this variable, then
+### every request below will use it automatically.
+@token = PASTE_TOKEN_HERE
+
+### Dashboard summary
+GET {{host}}/api/dashboard/summary
+Authorization: Bearer {{token}}
+
+### List assets
+GET {{host}}/api/assets
+Authorization: Bearer {{token}}
+
+### List assets filtered
+GET {{host}}/api/assets?status=Available&category=Laptop
+Authorization: Bearer {{token}}
+
+### List vendors
+GET {{host}}/api/vendors
+Authorization: Bearer {{token}}
+
+### List employees
+GET {{host}}/api/employees
+Authorization: Bearer {{token}}
+
+### List categories
+GET {{host}}/api/categories
+Authorization: Bearer {{token}}
+
+### List inventory batches
+GET {{host}}/api/inventory
+Authorization: Bearer {{token}}
+
+### Create an inventory batch (auto-generates assets from Configuration)
+POST {{host}}/api/inventory
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "category": "Laptop",
+  "department": "Engineering",
+  "quantity": 2,
+  "vendorId": "VEN-101",
+  "purchaseDate": "2026-09-01",
+  "purchaseCost": 75000,
+  "location": "Pune - Kharadi HQ",
+  "condition": "New",
+  "status": "Available",
+  "invoiceNo": "INV-9001",
+  "poNumber": "PO-2026-1001",
+  "configuration": {
+    "brandModel": "Dell Latitude 5440",
+    "cpu": "Intel Core i7-1355U",
+    "ram": "16 GB",
+    "storage": "512 GB SSD",
+    "os": "Windows 11 Pro"
+  },
+  "items": []
+}
+
+### Assign an asset (replace the id with one from GET /api/assets)
+POST {{host}}/api/assets/AST-LAP-00001/assign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "employeeId": "EMP-1001",
+  "remarks": "Issued for onboarding"
+}
+
+### Raise a maintenance ticket
+POST {{host}}/api/maintenance
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "assetId": "AST-LAP-00001",
+  "issueType": "Hardware Fault",
+  "description": "Device not powering on."
+}
