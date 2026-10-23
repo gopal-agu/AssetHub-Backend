@@ -3,7 +3,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using AssetHub.API.Middleware;
 using AssetHub.Infrastructure;
-using AssetHub.Infrastructure.Data.Seed;
+using AssetHub.Infrastructure.BackgroundServices;
+//using AssetHub.Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -46,6 +47,9 @@ builder.Services.AddSwaggerGen(options =>
 // ---- Data + business services (see AssetHub.Infrastructure.DependencyInjection) ----------------
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// ---- Background Services: Daily 7-day software expiry & renewal email alert job ----------------
+builder.Services.AddHostedService<SoftwareExpiryReminderBackgroundService>();
+
 // ---- CORS: allow the Vite dev server (and anything listed in appsettings) to call the API -------
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(options =>
@@ -87,7 +91,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // ---- Seed the database (idempotent — no-ops once Categories has rows) ---------------------------
-await DbSeeder.SeedAsync(app.Services);
+//await DbSeeder.SeedAsync(app.Services);
 
 if (app.Environment.IsDevelopment())
 {

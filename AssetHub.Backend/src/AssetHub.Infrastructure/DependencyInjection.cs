@@ -1,3 +1,4 @@
+using AssetHub.Core.Common;
 using AssetHub.Core.Interfaces.Repositories;
 using AssetHub.Core.Interfaces.Services;
 using AssetHub.Infrastructure.Data;
@@ -34,6 +35,22 @@ public static class DependencyInjection
         });
 
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.PostConfigure<EmailSettings>(options =>
+        {
+            // Support both JSON array [ "a@b.com", "c@d.com" ] and comma/semicolon-separated string "a@b.com, c@d.com"
+            var mgmtSection = configuration.GetSection("EmailSettings:ManagementEmail");
+            if (mgmtSection.Exists() && !string.IsNullOrWhiteSpace(mgmtSection.Value))
+            {
+                var split = mgmtSection.Value
+                    .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToList();
+                if (split.Count > 0)
+                {
+                    options.ManagementEmail = split;
+                }
+            }
+        });
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -52,6 +69,8 @@ public static class DependencyInjection
         services.AddScoped<IMaintenanceService, MaintenanceService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<ISoftwareService, SoftwareService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<ISoftwareNotificationService, SoftwareNotificationService>();
 
         return services;
     }

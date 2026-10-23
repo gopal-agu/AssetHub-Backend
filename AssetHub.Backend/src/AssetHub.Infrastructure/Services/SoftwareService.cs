@@ -40,9 +40,26 @@ public class SoftwareService : ISoftwareService
     public async Task<SoftwareSubscriptionDto> CreateAsync(CreateSoftwareSubscriptionDto dto)
     {
         var count = await _uow.SoftwareSubscriptions.Query().CountAsync();
+
+        // OLD CODE (COMMENTED OUT):
+        // var code = !string.IsNullOrWhiteSpace(dto.AssetCode)
+        //     ? dto.AssetCode
+        //     : $"SW-{count + 1:D5}";
+
+        // NEW CODE: Auto-generate code according to Category Prefix present in Categories table
+        string prefix = "SW";
+        if (!string.IsNullOrWhiteSpace(dto.Category))
+        {
+            var cat = await _uow.Categories.Query().FirstOrDefaultAsync(c => c.Name == dto.Category);
+            if (cat != null && !string.IsNullOrWhiteSpace(cat.Prefix))
+            {
+                prefix = cat.Prefix.Trim().ToUpper();
+            }
+        }
+
         var code = !string.IsNullOrWhiteSpace(dto.AssetCode)
             ? dto.AssetCode
-            : $"SW-{count + 1:D5}";
+            : $"{prefix}-{count + 1:D5}";
 
         var id = $"SFT-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
 

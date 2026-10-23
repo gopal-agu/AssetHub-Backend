@@ -42,4 +42,28 @@ public class SoftwareController : ControllerBase
         await _service.DeleteAsync(id);
         return NoContent();
     }
+
+    [HttpPost("check-expirations")]
+    public async Task<IActionResult> CheckExpirations([FromServices] ISoftwareNotificationService notificationService)
+    {
+        var count = await notificationService.CheckAndSendSoftwareExpiryAlertsAsync();
+        return Ok(new 
+        { 
+            message = count > 0 
+                ? $"Software expiration check completed. {count} notification email(s) sent." 
+                : "Software expiration check completed. No subscriptions expiring within 7 days.",
+            count 
+        });
+    }
+
+    [HttpPost("{id}/send-reminder")]
+    public async Task<IActionResult> SendReminder(string id, [FromServices] ISoftwareNotificationService notificationService)
+    {
+        var success = await notificationService.SendSingleSoftwareReminderAsync(id);
+        if (!success)
+        {
+            return NotFound(new { message = $"Software subscription with ID '{id}' was not found." });
+        }
+        return Ok(new { message = "Software reminder email sent successfully to management and responsible person." });
+    }
 }
